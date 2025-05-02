@@ -16,6 +16,8 @@ class StudentProfilePage extends StatefulWidget {
 class _StudentProfilePageState extends State<StudentProfilePage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _linkedinController;
+  late TextEditingController _instagramController;
+  late TextEditingController _githubController;
   late TextEditingController _phoneController;
   late TextEditingController _personalEmailController;
   late TextEditingController _departmentController;
@@ -27,6 +29,10 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
     super.initState();
     _linkedinController =
         TextEditingController(text: widget.studentData['linkedin'] ?? '');
+    _instagramController =
+        TextEditingController(text: widget.studentData['instagram'] ?? '');
+    _githubController =
+        TextEditingController(text: widget.studentData['github'] ?? '');
     _phoneController =
         TextEditingController(text: widget.studentData['phone'] ?? '');
     _personalEmailController =
@@ -42,6 +48,8 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
   @override
   void dispose() {
     _linkedinController.dispose();
+    _instagramController.dispose();
+    _githubController.dispose();
     _phoneController.dispose();
     _personalEmailController.dispose();
     _departmentController.dispose();
@@ -59,6 +67,8 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
           body: jsonEncode({
             'username': widget.studentData['username'],
             'linkedin': _linkedinController.text,
+            'instagram': _instagramController.text,
+            'github': _githubController.text,
             'phone': _phoneController.text,
             'personalEmail': _personalEmailController.text,
             'department': _departmentController.text,
@@ -66,15 +76,30 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
             'passingYear': _passingYearController.text,
           }),
         );
-        final data = jsonDecode(response.body);
+
+        // Handle response
         if (response.statusCode == 200) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data['message'])),
+            SnackBar(content: Text('Profile updated successfully')),
           );
-          Navigator.pop(context); // Return to dashboard
+
+          // Update the data in the parent and return
+          final updatedData = Map<String, dynamic>.from(widget.studentData);
+          updatedData['linkedin'] = _linkedinController.text;
+          updatedData['instagram'] = _instagramController.text;
+          updatedData['github'] = _githubController.text;
+          updatedData['phone'] = _phoneController.text;
+          updatedData['personalEmail'] = _personalEmailController.text;
+          updatedData['department'] = _departmentController.text;
+          updatedData['joiningYear'] = _joiningYearController.text;
+          updatedData['passingYear'] = _passingYearController.text;
+
+          Navigator.pop(context, updatedData);
         } else {
+          final data = jsonDecode(response.body);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${data['message']}')),
+            SnackBar(
+                content: Text('Error: ${data['message'] ?? "Update failed"}')),
           );
         }
       } catch (e) {
@@ -89,9 +114,9 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Student Profile'),
+        title: Text('Edit Profile'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Card(
           child: Padding(
@@ -101,27 +126,83 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Update Profile',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  SizedBox(height: 16),
-                  TextFormField(
-                    controller: _linkedinController,
-                    decoration: InputDecoration(
-                      labelText: 'LinkedIn',
-                      prefixIcon: Icon(MdiIcons.linkedin),
-                      border: OutlineInputBorder(),
+                  Center(
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.grey.shade200,
+                          child: Icon(MdiIcons.account,
+                              size: 50, color: Colors.blueAccent),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          widget.studentData['name'] ?? 'N/A',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        Text(
+                          widget.studentData['rollNo'] ?? 'N/A',
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Colors.grey.shade600,
+                                  ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 12),
+                  SizedBox(height: 24),
+                  Text('Academic Information',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
                   TextFormField(
-                    controller: _phoneController,
+                    controller: _departmentController,
                     decoration: InputDecoration(
-                      labelText: 'Phone',
-                      prefixIcon: Icon(MdiIcons.phone),
+                      labelText: 'Department',
+                      prefixIcon: Icon(MdiIcons.school),
                       border: OutlineInputBorder(),
                     ),
+                    validator: (value) => value!.isEmpty ? 'Required' : null,
                   ),
                   SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _joiningYearController,
+                          decoration: InputDecoration(
+                            labelText: 'Joining Year',
+                            prefixIcon: Icon(MdiIcons.calendar),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) =>
+                              value!.isEmpty ? 'Required' : null,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _passingYearController,
+                          decoration: InputDecoration(
+                            labelText: 'Passing Year',
+                            prefixIcon: Icon(MdiIcons.calendarCheck),
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (value) =>
+                              value!.isEmpty ? 'Required' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 24),
+                  Text('Contact Information',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
                   TextFormField(
                     controller: _personalEmailController,
                     decoration: InputDecoration(
@@ -136,39 +217,60 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                   ),
                   SizedBox(height: 12),
                   TextFormField(
-                    controller: _departmentController,
+                    controller: _phoneController,
                     decoration: InputDecoration(
-                      labelText: 'Department',
-                      prefixIcon: Icon(MdiIcons.school),
+                      labelText: 'Phone',
+                      prefixIcon: Icon(MdiIcons.phone),
                       border: OutlineInputBorder(),
                     ),
-                    validator: (value) => value!.isEmpty ? 'Required' : null,
+                  ),
+                  SizedBox(height: 24),
+                  Text('Social Media Profiles',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8),
+                  TextFormField(
+                    controller: _linkedinController,
+                    decoration: InputDecoration(
+                      labelText: 'LinkedIn Profile',
+                      prefixIcon: Icon(MdiIcons.linkedin),
+                      border: OutlineInputBorder(),
+                      hintText: 'linkedin.com/in/yourprofile',
+                    ),
                   ),
                   SizedBox(height: 12),
                   TextFormField(
-                    controller: _joiningYearController,
+                    controller: _instagramController,
                     decoration: InputDecoration(
-                      labelText: 'Joining Year',
-                      prefixIcon: Icon(MdiIcons.calendar),
+                      labelText: 'Instagram Handle',
+                      prefixIcon: Icon(MdiIcons.instagram),
                       border: OutlineInputBorder(),
+                      hintText: '@yourusername',
                     ),
-                    validator: (value) => value!.isEmpty ? 'Required' : null,
                   ),
                   SizedBox(height: 12),
                   TextFormField(
-                    controller: _passingYearController,
+                    controller: _githubController,
                     decoration: InputDecoration(
-                      labelText: 'Passing Year',
-                      prefixIcon: Icon(MdiIcons.calendarCheck),
+                      labelText: 'GitHub Username',
+                      prefixIcon: Icon(MdiIcons.github),
                       border: OutlineInputBorder(),
+                      hintText: 'github.com/yourusername',
                     ),
-                    validator: (value) => value!.isEmpty ? 'Required' : null,
                   ),
-                  SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _updateProfile,
-                    icon: Icon(MdiIcons.contentSave),
-                    label: Text('Save Profile'),
+                  SizedBox(height: 24),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: _updateProfile,
+                      icon: Icon(MdiIcons.contentSave),
+                      label: Text('Save Profile'),
+                      style: ElevatedButton.styleFrom(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      ),
+                    ),
                   ),
                 ],
               ),

@@ -24,9 +24,14 @@ flutter:
   uses-material-design: true
 
   assets:
-    - fonts/
-
+    - assets/fonts/
+    
+  # Update the fonts declaration to use correct path
   fonts:
     - family: Roboto
       fonts:
-        - asset: fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Roboto-Italic.ttf
+          style: italic
